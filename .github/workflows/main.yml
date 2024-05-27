@@ -90,5 +90,5 @@ jobs:
             -e EMAIL_USER=$EMAIL_USER \
             -e EMAIL_PASSWORD=$EMAIL_PASSWORD \
             -e AWS_S3_REGION=$AWS_S3_REGION \
-            -d ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
+            ${{ secrets.DOCKER_USERNAME }}/${{ github.event.repository.name }}:latest
  

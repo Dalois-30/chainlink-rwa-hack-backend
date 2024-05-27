@@ -12,7 +12,7 @@ import { log } from 'console';
 @Injectable()
 export class UploadService {
     private readonly s3Client = new S3Client({
-        region: this.configService.getOrThrow('AWS_S3_REGION'),
+        region: this.configService.get('AWS_S3_REGION'),
     });
     constructor(
         private readonly configService: ConfigService,
@@ -30,13 +30,13 @@ export class UploadService {
         const compressedImageBuffer = await this.compressImage(file);
         const result = await this.s3Client.send(
             new PutObjectCommand({
-                Bucket: this.configService.getOrThrow('AWS_BUCKET_NAME'),
+                Bucket: this.configService.get('AWS_BUCKET_NAME'),
                 Key: `chainlink/${fileName}`,
                 Body: compressedImageBuffer,
             })
         )
         // console.log(result);
-        const uploadedObjectUrl = `https://${this.configService.getOrThrow('AWS_BUCKET_NAME')}.s3.amazonaws.com/chainlink/${fileName}`;
+        const uploadedObjectUrl = `https://${this.configService.get('AWS_BUCKET_NAME')}.s3.amazonaws.com/chainlink/${fileName}`;
         console.log(uploadedObjectUrl);
 
         return `chainlink/${fileName}`;
@@ -86,7 +86,7 @@ export class UploadService {
     async getUploadedObject(key: GetFileDto) {
         try {
             const command = new GetObjectCommand({
-                Bucket: this.configService.getOrThrow('AWS_BUCKET_NAME'),
+                Bucket: this.configService.get('AWS_BUCKET_NAME'),
                 Key: key.key
             })
 
@@ -110,7 +110,7 @@ export class UploadService {
         try {
             // Retrieve list of all objects/images in your folder.
             // by default get all objects in the buckeck if no prefix found
-            let command = new ListObjectsCommand({ Bucket: this.configService.getOrThrow('AWS_BUCKET_NAME') })
+            let command = new ListObjectsCommand({ Bucket: this.configService.get('AWS_BUCKET_NAME') })
             if (prefix) {
                 // if prefix, get a spécific folder
                 command = new ListObjectsCommand({ Bucket: this.configService.getOrThrow('AWS_BUCKET_NAME'), Prefix: prefix });
@@ -125,7 +125,7 @@ export class UploadService {
             const presignedUrls = await Promise.all(contents.map(async (object) => {
                 // Get URL parameters for object
                 const urlParams = {
-                    Bucket: this.configService.getOrThrow('AWS_BUCKET_NAME'),
+                    Bucket: this.configService.get('AWS_BUCKET_NAME'),
                     Key: object.Key
                 };
 

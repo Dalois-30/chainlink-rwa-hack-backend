@@ -23,11 +23,20 @@ export class EnvService {
 
   constructor() {
     const environment = process.env.NODE_ENV || 'development';
-    const data: any = dotenv.parse(fs.readFileSync(`.env`));
+    let data: any = {};
+
+    if (fs.existsSync(`.env`)) {
+      data = dotenv.parse(fs.readFileSync(`.env`));
+    }
 
     data.APP_ENV = environment;
-    data.APP_DEBUG = data.APP_DEBUG === 'true' ? true : false;
-    data.DB_PORT = parseInt(data.DB_PORT);
+    data.APP_DEBUG = data.APP_DEBUG === 'true' || process.env.APP_DEBUG === 'true';
+    data.DB_TYPE = data.DB_TYPE || process.env.DB_TYPE;
+    data.DB_HOST = data.DB_HOST || process.env.DB_HOST;
+    data.DB_NAME = data.DB_NAME || process.env.DB_NAME;
+    data.DB_PORT = parseInt(data.DB_PORT) || parseInt(process.env.DB_PORT);
+    data.DB_USER = data.DB_USER || process.env.DB_USER;
+    data.DB_PASSWORD = data.DB_PASSWORD || process.env.DB_PASSWORD;
 
     this.vars = data as EnvData;
   }

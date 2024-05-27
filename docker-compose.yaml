@@ -9,7 +9,7 @@ services:
   #   volumes:
   #     - .:/cashApp
   #   depends_on:
-  #     - db
+  #     - db  
   db:
     image: mysql:latest
     volumes:

@@ -7,8 +7,8 @@ import { StockService } from '../services/stock.service';
 import { log } from 'console';
 
 @ApiBearerAuth('JWT-auth')
-@ApiTags('Stocks')
-@Controller('Stocks')
+@ApiTags('stocks')
+@Controller('stocks')
 export class StockController {
     constructor(private readonly stockService: StockService) { }
 

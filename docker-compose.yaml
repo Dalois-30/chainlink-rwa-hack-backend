@@ -18,7 +18,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
       MYSQL_DATABASE: chainlink_database
-      MYSQL_USER: dev_user
-      MYSQL_PASSWORD: my_db_password
+      MYSQL_USER: chainlink_user
+      MYSQL_PASSWORD: Pronto#237
     ports:
       - 3306:3306

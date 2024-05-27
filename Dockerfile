@@ -7,37 +7,41 @@ FROM node:${NODE_VERSION}-alpine as base
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Install necessary dependencies for building Node.js binaries on Alpine
-RUN apk add --no-cache libc6-compat
+# Copy dependencies
+COPY package*.json ./
 
 # Expose the application port
 EXPOSE 3000
 
+
 # Development stage
 FROM base as dev
+
 # Install dependencies
-RUN --mount=type=bind,source=yarn.lock,target=yarn.lock \
-    --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    yarn install
+RUN npm install
+
 # Copy application files
 COPY . .
+# Build application
+RUN npm run build
 # Start the application in development mode
-CMD ["yarn", "start:dev"]
+CMD ["npm", "run", "start:dev"]
+
+
 
 # Production stage
 FROM base as prod
 # Install only production dependencies
-RUN --mount=type=bind,source=yarn.lock,target=yarn.lock \
-    --mount=type=bind,source=package.json,target=package.json \
-    --mount=type=cache,target=/usr/local/share/.cache/yarn \
-    yarn install --production
+RUN npm install --omit=dev
 # Copy application files
 COPY . .
-# Build the application
-RUN yarn build
+# Copy dist from dev stage
+COPY --from=dev /usr/src/app/dist ./dist
+
 # Start the application in production mode
 CMD ["node", "dist/main"]
+
+
 
 # Test stage
 FROM base as test
@@ -50,4 +54,4 @@ RUN --mount=type=bind,source=yarn.lock,target=yarn.lock \
 # Copy application files
 COPY . .
 # Run tests
-CMD ["yarn", "test"]
+CMD ["node", "run", "test"]

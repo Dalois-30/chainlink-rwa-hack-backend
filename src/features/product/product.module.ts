@@ -21,5 +21,5 @@ import { StockController } from './controllers/stock.controller';
     UploadService,
     StockService
   ]
-})
+}) 
 export class ProductModule { }

@@ -75,7 +75,7 @@ export class ProductController {
    */
   @Public()
   @ApiResponse({ status: 200, description: 'Fetched specific product' })
-  @Get('/getOne/:productId')
+  @Get('/get-one/:productId')
   async getproductById(@Param('productId') id: string): Promise<ApiResponseDTO<ProductGetDTO>> {
     return await this.productservice.findOneById(id);
   }

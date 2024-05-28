@@ -89,6 +89,58 @@ export class AuthService {
 
   }
 
+  /**
+   * 
+   * @param createUserDto create user dto
+   * @returns the created user
+   */
+  async createWithAddress(createUserDto: CreateUserDto, response: Response) {
+    const res = new ApiResponseDTO<any>();
+    try {
+      // check if user already exists
+      const user = await this.usersService.findOneByEmail(createUserDto.email);
+
+      if (user) {
+        throw new HttpException('User already exists', HttpStatus.BAD_REQUEST);
+      }
+
+      const userName = await this.userRepository.findOneBy({ username: createUserDto.username })
+      if (userName) {
+        throw new HttpException('username already exists', HttpStatus.CONFLICT)
+      }
+      // create new user
+      const newUser = new User();
+      newUser.email = createUserDto.email;
+      newUser.password = createUserDto.password;
+      newUser.username = createUserDto.username;
+
+      // Trouver les rôles à partir des noms
+      const userRole = await this.roleRepository.findOne({
+        where: {
+          roleName: UserRolesEnum.USER
+        }
+      });
+
+      // Assigner les rôles à l'utilisateur
+      if (userRole) {
+        newUser.userRoles = [userRole];
+      }
+
+      const userResponse = await this.userRepository.save(newUser);
+      // await this.sharedService.createEmailToken(newUser.email, response)
+      // set the response object
+      res.data = this.jwtPayloadService.createJwtPayload(userResponse);
+      res.statusCode = HttpStatus.CREATED;
+      res.message = "user created successfully"
+    } catch (error) {
+      res.statusCode = HttpStatus.BAD_REQUEST;
+      res.message = error.message
+    }
+    // return the response
+    return response.send(res);
+
+  }
+
 
   /**
    * 

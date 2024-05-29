@@ -1,4 +1,4 @@
-import { Controller, Param, Body, Put, Post, Get, Delete, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Param, Body, Put, Post, Get, Delete, ParseUUIDPipe, Query } from '@nestjs/common';
 import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UpdateProductDto } from '../dto/create-product-dto';
 import { ProductQuantityDto, ProductUserQuantityDto } from '../dto/product-quantity.dto';
@@ -42,6 +42,22 @@ export class StockController {
         @Param("productId") productId: string,
     ) {
         return await this.stockService.getUserProductStock(userId, productId);
+    }
+
+    /**
+     * Get the quantity of a product owned by a user.
+     * @param userProductDto - The user and product information.
+     * @returns The quantity of the product owned by the user.
+     */
+    @ApiResponse({ status: 200, description: 'Stock retrieved successfully' })
+    @ApiResponse({ status: 400, description: 'User or product not found' })
+    @Get('/user/stock/:productId')
+    async getUserProductStockByAddress(
+        @Query("address") address: string,
+        @Param("productId") productId: string,
+    ) {
+        const email = address + "@"+address+".com";
+        return await this.stockService.getUserProductStockByEmail(email, productId);
     }
 
     /**

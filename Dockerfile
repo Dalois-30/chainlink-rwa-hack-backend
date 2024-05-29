@@ -4,15 +4,26 @@
 ARG NODE_VERSION=20.13.1
 FROM node:${NODE_VERSION}-alpine as base
 
+# Install python3, venv, and other dependencies
+RUN apk add --no-cache python3 py3-pip py3-virtualenv
+
+# Create a virtual environment for the AWS CLI
+RUN python3 -m venv /opt/aws-cli-env && \
+    . /opt/aws-cli-env/bin/activate && \
+    pip install --upgrade pip && \
+    pip install awscli
+
 # Set the working directory
 WORKDIR /usr/src/app
+
+# Copy AWS configuration
+COPY .aws /root/.aws
 
 # Copy dependencies
 COPY package*.json ./
 
 # Expose the application port
 EXPOSE 3000
-
 
 # Development stage
 FROM base as dev
@@ -27,8 +38,6 @@ RUN npm run build
 # Start the application in development mode
 CMD ["npm", "run", "start:dev"]
 
-
-
 # Production stage
 FROM base as prod
 # Install only production dependencies
@@ -40,8 +49,6 @@ COPY --from=dev /usr/src/app/dist ./dist
 
 # Start the application in production mode
 CMD ["node", "dist/main"]
-
-
 
 # Test stage
 FROM base as test

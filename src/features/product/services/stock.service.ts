@@ -55,6 +55,40 @@ export class StockService {
         return res;
     }
 
+
+    /**
+     * Get the quantity of a product owned by a user.
+     * @param userId - The ID of the user.
+     * @param productId - The ID of the product.
+     * @returns ApiResponseDTO<number> - The quantity of the product owned by the user.
+     */
+    async getUserProductStockByEmail(email: string, productId: string): Promise<number> {
+        const res = new ApiResponseDTO<number>();
+        try {
+            const userProduct = await this.userProductRepository.findOne({
+                where: {
+                    user: { email: email },
+                    product: { id: productId }
+                },
+                relations: ["user", "product"]
+            });
+
+            if (!userProduct) {
+                throw new HttpException("User does not own this product", HttpStatus.NOT_FOUND);
+            }
+
+            res.statusCode = HttpStatus.OK;
+            res.message = "Stock retrieved successfully";
+            res.data = userProduct.quantity;
+            return userProduct.quantity;
+        } catch (error) {
+            res.statusCode = HttpStatus.BAD_REQUEST;
+            res.message = error.message;
+            throw new HttpException(error.message, HttpStatus.BAD_REQUEST)
+        }
+        
+    }
+
     /**
      * Add a product to a user's products with the given quantity.
      * @param userId - The ID of the user.

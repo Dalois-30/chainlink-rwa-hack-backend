@@ -38,7 +38,7 @@ export class AuthController {
     const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (ethAddressRegex.test(address)) {
       const user = new CreateUserDto();
-      user.email = address + "@base.com";
+      user.email = address + "@"+address+".com";
       user.password = address;
       user.username = address;
       const response = await this.authService.createWithAddress(user, res);
@@ -66,7 +66,7 @@ export class AuthController {
     const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (ethAddressRegex.test(address)) {
       const loginUserDto = new LoginUserDto();
-      loginUserDto.email = address + "@base.com";
+      loginUserDto.email = address + "@"+address+".com";
       loginUserDto.password = address;
       return await this.authService.validateUserByPassword(loginUserDto);
     }

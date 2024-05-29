@@ -30,8 +30,10 @@ RUN npm install
 
 # Copy application files
 COPY . .
+
 # Build application
 RUN npm run build
+
 # Start the application in development mode
 CMD ["npm", "run", "start:dev"]
 
@@ -74,5 +76,6 @@ RUN --mount=type=bind,source=yarn.lock,target=yarn.lock \
 
 # Copy application files
 COPY . .
+
 # Run tests
 CMD ["node", "run", "test"]

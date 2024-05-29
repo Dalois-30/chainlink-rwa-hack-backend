@@ -5,7 +5,7 @@ ARG NODE_VERSION=20.13.1
 FROM node:${NODE_VERSION}-alpine as base
 
 # Install python3, venv, and other dependencies
-RUN apk add --no-cache python3 py3-pip py3-virtualenv
+RUN apk add --no-cache python3 py3-pip py3-virtualenv bash
 
 # Create a virtual environment for the AWS CLI
 RUN python3 -m venv /opt/aws-cli-env && \
@@ -47,16 +47,17 @@ COPY . .
 # Copy dist from dev stage
 COPY --from=dev /usr/src/app/dist ./dist
 
-# Set environment variables for AWS CLI
+# Add AWS CLI configuration script
+COPY configure-aws-cli.sh /usr/local/bin/configure-aws-cli.sh
+RUN chmod +x /usr/local/bin/configure-aws-cli.sh
+
+# Set build arguments for AWS credentials
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
 ARG AWS_DEFAULT_REGION
 
 # Configure AWS CLI with environment variables
-RUN . /opt/aws-cli-env/bin/activate && \
-    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \
-    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY && \
-    aws configure set region $AWS_DEFAULT_REGION
+RUN /usr/local/bin/configure-aws-cli.sh
 
 # Start the application in production mode
 CMD ["node", "dist/main"]

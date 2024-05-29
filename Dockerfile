@@ -56,7 +56,7 @@ RUN chmod +x /usr/local/bin/configure-aws-cli.sh
 # Set build arguments for AWS credentials
 ARG AWS_ACCESS_KEY_ID
 ARG AWS_SECRET_ACCESS_KEY
-ARG AWS_DEFAULT_REGION
+ARG AWS_REGION
 
 # Configure AWS CLI with environment variables
 RUN /usr/local/bin/configure-aws-cli.sh

@@ -16,9 +16,6 @@ RUN python3 -m venv /opt/aws-cli-env && \
 # Set the working directory
 WORKDIR /usr/src/app
 
-# Copy AWS configuration
-COPY .aws /root/.aws
-
 # Copy dependencies
 COPY package*.json ./
 
@@ -40,12 +37,26 @@ CMD ["npm", "run", "start:dev"]
 
 # Production stage
 FROM base as prod
+
 # Install only production dependencies
 RUN npm install --omit=dev
+
 # Copy application files
 COPY . .
+
 # Copy dist from dev stage
 COPY --from=dev /usr/src/app/dist ./dist
+
+# Set environment variables for AWS CLI
+ARG AWS_ACCESS_KEY_ID
+ARG AWS_SECRET_ACCESS_KEY
+ARG AWS_DEFAULT_REGION
+
+# Configure AWS CLI with environment variables
+RUN . /opt/aws-cli-env/bin/activate && \
+    aws configure set aws_access_key_id $AWS_ACCESS_KEY_ID && \
+    aws configure set aws_secret_access_key $AWS_SECRET_ACCESS_KEY && \
+    aws configure set region $AWS_DEFAULT_REGION
 
 # Start the application in production mode
 CMD ["node", "dist/main"]
@@ -53,11 +64,13 @@ CMD ["node", "dist/main"]
 # Test stage
 FROM base as test
 ENV NODE_ENV=test
+
 # Install dependencies
 RUN --mount=type=bind,source=yarn.lock,target=yarn.lock \
     --mount=type=bind,source=package.json,target=package.json \
     --mount=type=cache,target=/usr/local/share/.cache/yarn \
     yarn install
+
 # Copy application files
 COPY . .
 # Run tests

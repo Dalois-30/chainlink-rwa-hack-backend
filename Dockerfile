@@ -25,6 +25,9 @@ RUN apt-get update && \
 RUN curl -sL https://deb.nodesource.com/setup_${NODE_VERSION} | bash - && \
     apt-get install -y nodejs
 
+# Install Yarn
+RUN npm install --global yarn
+
 # Set the working directory
 WORKDIR /usr/src/app
 

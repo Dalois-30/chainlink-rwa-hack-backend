@@ -7,6 +7,8 @@ import { Request as RequestExpress, Response } from 'express';
 import { SharedService } from 'src/shared/services/shared.service';
 import { Public } from '../decorators/public.decorator';
 
+// TODO: add whitelist to user before interracting with our API
+
 @ApiBearerAuth('JWT-auth')
 @ApiTags('auth')
 @Controller('auth')
@@ -35,6 +37,7 @@ export class AuthController {
   @ApiResponse({ status: 400, description: 'Bad request' })
   @Post('/register-with-address')
   async createUserWithAddress(@Query("address") address: string, @Res() res: Response) {
+    // TODO: change this with a more secure way to create user using the address and also change the authentification method for this kind of user
     const ethAddressRegex = /^0x[a-fA-F0-9]{40}$/;
     if (ethAddressRegex.test(address)) {
       const user = new CreateUserDto();

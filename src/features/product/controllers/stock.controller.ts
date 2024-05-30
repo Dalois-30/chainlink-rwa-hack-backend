@@ -87,6 +87,7 @@ export class StockController {
     async incrementUserProductQuantity(
         @Body() userProductDto: ProductUserQuantityDto
     ) {
+        //TODO: change this and add property address to user model to make request more easy
         let email = undefined;
         if(userProductDto.address){
             const address = userProductDto.address;

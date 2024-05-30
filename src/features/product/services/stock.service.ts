@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { Product } from '../models/product.model';
 import { Stock } from '../models/stock.model';
 import { UserProduct } from '../models/user-product.model';
+import { log } from 'console';
 
 @Injectable()
 export class StockService {
@@ -60,7 +61,7 @@ export class StockService {
 
             res.statusCode = HttpStatus.OK;
             res.message = "Stock retrieved successfully";
-            res.data = userProduct.quantity;
+            res.data = userProduct.quantity * userProduct.product.price;
         } catch (error) {
             res.statusCode = HttpStatus.BAD_REQUEST;
             res.message = error.message;
@@ -105,7 +106,7 @@ export class StockService {
 
             res.statusCode = HttpStatus.OK;
             res.message = "Stock retrieved successfully";
-            res.data = userProduct ? userProduct.quantity : 0;
+            res.data = userProduct ? userProduct.quantity  * userProduct.product.price : 0;
         } catch (error) {
             res.statusCode = HttpStatus.BAD_REQUEST;
             res.message = error.message;
@@ -373,6 +374,10 @@ export class StockService {
             }
     
             const stock = product.stock;
+
+            if (!stock) {
+                throw new HttpException("Not stock available for this product", HttpStatus.BAD_REQUEST);
+            }
     
             // Ensure there is enough stock available for the adjustment
             if (adjustment > 0 && stock.quantity < adjustment) {

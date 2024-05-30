@@ -92,7 +92,10 @@ export class ProductService {
                 productDto.id = product.id;
                 productDto.name = product.name;
                 productDto.description = product.description;
-                productDto.stock = product.stock.quantity;
+                if (product.stock) {
+                    productDto.stock = product.stock.quantity;
+                } else productDto.stock = 0
+
                 productDto.created_at = product.created_at;
                 productDto.updated_at = product.updated_at;
                 // set the product value of the data to retrieve

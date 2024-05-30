@@ -85,7 +85,7 @@ jobs:
             -e DB_PASSWORD=$DB_PASSWORD \
             -e AWS_ACCESS_KEY=$AWS_ACCESS_KEY \
             -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-            -e AWS_REGION=$AWS_REGION \
+            -e AWS_REGION=$AWS_S3_REGION \
             -e AWS_BUCKET_NAME=$AWS_BUCKET_NAME \
             -e APP_PORT=$APP_PORT \
             -e SECRET_KEY=$SECRET_KEY \

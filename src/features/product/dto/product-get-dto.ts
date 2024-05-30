@@ -23,7 +23,7 @@ export class ProductObjectToSendDTO {
     id: string;
     name: string;
     description: string;
-    price: boolean;
+    price: number;
     stock: number;
     // category: Category;
     created_at: Date;

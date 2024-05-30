@@ -19,7 +19,10 @@ export class ProductUserQuantityDto {
 
     @ApiProperty()
     @IsUUID()
-    userId: string;
+    userId?: string;
+
+    @ApiProperty()
+    address?: string;
 
     @ApiProperty()
     @IsInt()

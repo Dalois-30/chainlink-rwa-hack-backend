@@ -70,10 +70,9 @@ export class StockController {
     @ApiResponse({ status: 400, description: 'User or product not found' })
     @Put('/user/update')
     async updateUserProductQuantity(
-        @Body() userProductDto: UserProductDto,
-        @Body() productQuantityDto: ProductQuantityDto
+        @Body() userProductDto: ProductUserQuantityDto
     ) {
-        return await this.stockService.updateUserProductQuantity(userProductDto.userId, userProductDto.productId, productQuantityDto.quantity);
+        return await this.stockService.updateUserProductQuantity(userProductDto.userId, userProductDto.productId, userProductDto.quantity);
     }
 
     /**
@@ -86,10 +85,14 @@ export class StockController {
     @ApiResponse({ status: 400, description: 'User or product not found' })
     @Put('/user/increment')
     async incrementUserProductQuantity(
-        @Body() userProductDto: UserProductDto,
-        @Body() productQuantityDto: ProductQuantityDto
+        @Body() userProductDto: ProductUserQuantityDto
     ) {
-        return await this.stockService.incrementUserProductQuantity(userProductDto.userId, userProductDto.productId, productQuantityDto.quantity);
+        let email = undefined;
+        if(userProductDto.address){
+            const address = userProductDto.address;
+            email = address + "@"+address+".com";
+        }
+        return await this.stockService.incrementUserProductQuantity(userProductDto.productId, userProductDto.quantity, userProductDto.userId, email);
     }
 
     /**
@@ -102,10 +105,14 @@ export class StockController {
     @ApiResponse({ status: 400, description: 'User or product not found' })
     @Put('/user/decrement')
     async decrementUserProductQuantity(
-        @Body() userProductDto: UserProductDto,
-        @Body() productQuantityDto: ProductQuantityDto
+        @Body() userProductDto: ProductUserQuantityDto
     ) {
-        return await this.stockService.decrementUserProductQuantity(userProductDto.userId, userProductDto.productId, productQuantityDto.quantity);
+        let email = undefined;
+        if(userProductDto.address){
+            const address = userProductDto.address;
+            email = address + "@"+address+".com";
+        }
+        return await this.stockService.decrementUserProductQuantity(userProductDto.productId, userProductDto.quantity, userProductDto.userId, email);
     }
 
     /**
@@ -115,7 +122,7 @@ export class StockController {
      */
     @ApiResponse({ status: 200, description: 'Product stock incremented successfully' })
     @ApiResponse({ status: 400, description: 'Product not found' })
-    @Put('/incrementStock')
+    @Put('/product/incrementStock')
     async incrementProductStock(
         @Body() productQuantityDto: ProductQuantityDto
     ) {
@@ -129,7 +136,7 @@ export class StockController {
      */
     @ApiResponse({ status: 200, description: 'Product stock decremented successfully' })
     @ApiResponse({ status: 400, description: 'Product not found' })
-    @Put('/decrementStock')
+    @Put('/product/decrementStock')
     async decrementProductStock(
         @Body() productQuantityDto: ProductQuantityDto
     ) {

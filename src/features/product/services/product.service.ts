@@ -91,6 +91,7 @@ export class ProductService {
                 // set the value of this object with the product get to the database
                 productDto.id = product.id;
                 productDto.name = product.name;
+                productDto.price = product.price;
                 productDto.description = product.description;
                 if (product.stock) {
                     productDto.stock = product.stock.quantity;

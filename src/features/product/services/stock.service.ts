@@ -33,7 +33,7 @@ export class StockService {
     async getUserProductStock(userId: string, productId: string): Promise<ApiResponseDTO<number>> {
         const res = new ApiResponseDTO<number>();
         try {
-            const userProduct = await this.userProductRepository.findOne({
+            let userProduct = await this.userProductRepository.findOne({
                 where: {
                     user: { id: userId },
                     product: { id: productId }
@@ -41,8 +41,21 @@ export class StockService {
                 relations: ["user", "product"]
             });
 
+            // If the user doesn't own the product, add it with a quantity of 0
             if (!userProduct) {
-                throw new HttpException("User does not own this product", HttpStatus.NOT_FOUND);
+                const user = await this.userRepository.findOne({ where: { id: userId } });
+                const product = await this.productRepository.findOne({ where: { id: productId } });
+
+                if (!user || !product) {
+                    throw new HttpException("User or Product not found", HttpStatus.NOT_FOUND);
+                }
+
+                userProduct = new UserProduct();
+                userProduct.user = user;
+                userProduct.product = product;
+                userProduct.quantity = 0;
+
+                await this.userProductRepository.save(userProduct);
             }
 
             res.statusCode = HttpStatus.OK;
@@ -62,10 +75,10 @@ export class StockService {
      * @param productId - The ID of the product.
      * @returns ApiResponseDTO<number> - The quantity of the product owned by the user.
      */
-    async getUserProductStockByEmail(email: string, productId: string): Promise<number> {
+    async getUserProductStockByEmail(email: string, productId: string): Promise<ApiResponseDTO<number>> {
         const res = new ApiResponseDTO<number>();
         try {
-            const userProduct = await this.userProductRepository.findOne({
+            let userProduct = await this.userProductRepository.findOne({
                 where: {
                     user: { email: email },
                     product: { id: productId }
@@ -73,20 +86,32 @@ export class StockService {
                 relations: ["user", "product"]
             });
 
+            // If the user doesn't own the product, add it with a quantity of 0
             if (!userProduct) {
-                throw new HttpException("User does not own this product", HttpStatus.NOT_FOUND);
+                const user = await this.userRepository.findOne({ where: { email: email } });
+                const product = await this.productRepository.findOne({ where: { id: productId } });
+
+                if (!user || !product) {
+                    throw new HttpException("User or Product not found", HttpStatus.NOT_FOUND);
+                }
+
+                userProduct = new UserProduct();
+                userProduct.user = user;
+                userProduct.product = product;
+                userProduct.quantity = 0;
+
+                await this.userProductRepository.save(userProduct);
             }
 
             res.statusCode = HttpStatus.OK;
             res.message = "Stock retrieved successfully";
-            res.data = userProduct.quantity;
-            return userProduct.quantity;
+            res.data = userProduct ? userProduct.quantity : 0;
         } catch (error) {
             res.statusCode = HttpStatus.BAD_REQUEST;
             res.message = error.message;
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST)
         }
-        
+        return res;
     }
 
     /**
@@ -156,7 +181,7 @@ export class StockService {
     async updateUserProductQuantity(userId: string, productId: string, quantity: number): Promise<ApiResponseDTO<UserProduct>> {
         const res = new ApiResponseDTO<UserProduct>();
         try {
-            const userProduct = await this.userProductRepository.findOne({
+            let userProduct = await this.userProductRepository.findOne({
                 where: {
                     user: { id: userId },
                     product: { id: productId }
@@ -164,32 +189,49 @@ export class StockService {
                 relations: ["user", "product"]
             });
 
+            // If the user doesn't own the product, add it with the specified quantity
             if (!userProduct) {
-                throw new HttpException("User does not own this product", HttpStatus.NOT_FOUND);
+                const user = await this.userRepository.findOne({ where: { id: userId } });
+                const product = await this.productRepository.findOne({ where: { id: productId }, relations: ['stock'] });
+
+                if (!user || !product) {
+                    throw new HttpException("User or Product not found", HttpStatus.NOT_FOUND);
+                }
+
+                userProduct = new UserProduct();
+                userProduct.user = user;
+                userProduct.product = product;
+                userProduct.quantity = quantity;
+
+                await this.userProductRepository.save(userProduct);
+
+                const stock = product.stock;
+                stock.quantity -= quantity;
+                await this.stockRepository.save(stock);
+            } else {
+                const product = await this.productRepository.findOne({ where: { id: productId }, relations: ['stock'] });
+
+                if (!product) {
+                    throw new HttpException("Product not found", HttpStatus.NOT_FOUND);
+                }
+
+                const stock = product.stock;
+                const difference = quantity - userProduct.quantity;
+
+                if (difference > 0 && stock.quantity < difference) {
+                    throw new HttpException("Not enough stock available", HttpStatus.BAD_REQUEST);
+                }
+
+                userProduct.quantity = quantity;
+                stock.quantity -= difference;
+
+                if (stock.quantity < 0) {
+                    throw new HttpException("Stock cannot be negative", HttpStatus.BAD_REQUEST);
+                }
+
+                await this.userProductRepository.save(userProduct);
+                await this.stockRepository.save(stock);
             }
-
-            const product = await this.productRepository.findOne({ where: { id: productId }, relations: ['stock'] });
-
-            if (!product) {
-                throw new HttpException("Product not found", HttpStatus.NOT_FOUND);
-            }
-
-            const stock = product.stock;
-            const difference = quantity - userProduct.quantity;
-
-            if (difference > 0 && stock.quantity < difference) {
-                throw new HttpException("Not enough stock available", HttpStatus.BAD_REQUEST);
-            }
-
-            userProduct.quantity = quantity;
-            stock.quantity -= difference;
-
-            if (stock.quantity < 0) {
-                throw new HttpException("Stock cannot be negative", HttpStatus.BAD_REQUEST);
-            }
-
-            await this.userProductRepository.save(userProduct);
-            await this.stockRepository.save(stock);
 
             res.statusCode = HttpStatus.OK;
             res.message = "Product quantity updated successfully";
@@ -247,8 +289,8 @@ export class StockService {
      * @param quantity - The quantity to be added.
      * @returns ApiResponseDTO<UserProduct> - The result of the increment operation.
      */
-    async incrementUserProductQuantity(userId: string, productId: string, quantity: number): Promise<ApiResponseDTO<UserProduct>> {
-        return this.adjustUserProductQuantity(userId, productId, quantity);
+    async incrementUserProductQuantity(productId: string, quantity: number, userId?: string, email?: string): Promise<ApiResponseDTO<UserProduct>> {
+        return this.adjustUserProductQuantity(productId, quantity, userId, email);
     }
 
     /**
@@ -258,8 +300,8 @@ export class StockService {
      * @param quantity - The quantity to be subtracted.
      * @returns ApiResponseDTO<UserProduct> - The result of the decrement operation.
      */
-    async decrementUserProductQuantity(userId: string, productId: string, quantity: number): Promise<ApiResponseDTO<UserProduct>> {
-        return this.adjustUserProductQuantity(userId, productId, -quantity);
+    async decrementUserProductQuantity(productId: string, quantity: number, userId?: string, email?: string): Promise<ApiResponseDTO<UserProduct>> {
+        return this.adjustUserProductQuantity(productId, -quantity, userId, email);
     }
 
     /**
@@ -289,42 +331,73 @@ export class StockService {
      * @param adjustment - The quantity to be adjusted (positive or negative).
      * @returns ApiResponseDTO<UserProduct> - The result of the adjustment operation.
      */
-    private async adjustUserProductQuantity(userId: string, productId: string, adjustment: number): Promise<ApiResponseDTO<UserProduct>> {
+    private async adjustUserProductQuantity(
+        productId: string,
+        adjustment: number,
+        userId?: string,
+        email?: string
+    ): Promise<ApiResponseDTO<UserProduct>> {
         const res = new ApiResponseDTO<UserProduct>();
         try {
-            const userProduct = await this.userProductRepository.findOne({
+            // Ensure that at least one of userId or email is provided
+            if (!userId && !email) {
+                throw new HttpException("Either userId or email must be provided", HttpStatus.BAD_REQUEST);
+            }
+    
+            // Find the user by userId or email
+            let user: User | undefined;
+            if (userId) {
+                user = await this.userRepository.findOne({ where: { id: userId } });
+            } else if (email) {
+                user = await this.userRepository.findOne({ where: { email: email } });
+            }
+    
+            // Ensure the user exists
+            if (!user) {
+                throw new HttpException("User not found", HttpStatus.NOT_FOUND);
+            }
+    
+            let userProduct = await this.userProductRepository.findOne({
                 where: {
-                    user: { id: userId },
+                    user: { id: user.id },
                     product: { id: productId }
                 },
                 relations: ["user", "product"]
             });
-
-            if (!userProduct) {
-                throw new HttpException("User does not own this product", HttpStatus.NOT_FOUND);
-            }
-
+    
             const product = await this.productRepository.findOne({ where: { id: productId }, relations: ['stock'] });
 
+            // Ensure the product exists
             if (!product) {
                 throw new HttpException("Product not found", HttpStatus.NOT_FOUND);
             }
-
+    
             const stock = product.stock;
+    
+            // Ensure there is enough stock available for the adjustment
             if (adjustment > 0 && stock.quantity < adjustment) {
                 throw new HttpException("Not enough stock available", HttpStatus.BAD_REQUEST);
             }
 
-            userProduct.quantity += adjustment;
-            stock.quantity -= adjustment;
+            if (!userProduct) {
+                userProduct = new UserProduct();
+                userProduct.user = user;
+                userProduct.product = product;
+                userProduct.quantity = adjustment;
+            } else {
+                userProduct.quantity += adjustment;
+            }
 
+            stock.quantity -= adjustment;
+    
+            // Ensure the user's product quantity does not become negative
             if (userProduct.quantity < 0) {
                 throw new HttpException("User's product quantity cannot be negative", HttpStatus.BAD_REQUEST);
             }
-
+    
             await this.userProductRepository.save(userProduct);
             await this.stockRepository.save(stock);
-
+    
             res.statusCode = HttpStatus.OK;
             res.message = "Product quantity adjusted successfully";
             res.data = userProduct;
@@ -334,6 +407,7 @@ export class StockService {
         }
         return res;
     }
+    
 
     /**
      * Adjust the stock of a product.

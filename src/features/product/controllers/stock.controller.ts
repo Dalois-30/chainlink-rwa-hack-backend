@@ -25,8 +25,8 @@ export class StockController {
     async addUserProduct(
         @Body() userProductDto: ProductUserQuantityDto
     ) {
-        log("user dto", userProductDto)
-        return await this.stockService.addUserProduct(userProductDto.userId, userProductDto.productId, userProductDto.quantity);
+        const quantity = +userProductDto.quantity
+        return await this.stockService.addUserProduct(userProductDto.userId, userProductDto.productId, quantity);
     }
 
     /**
@@ -72,7 +72,8 @@ export class StockController {
     async updateUserProductQuantity(
         @Body() userProductDto: ProductUserQuantityDto
     ) {
-        return await this.stockService.updateUserProductQuantity(userProductDto.userId, userProductDto.productId, userProductDto.quantity);
+        const quantity = +userProductDto.quantity
+        return await this.stockService.updateUserProductQuantity(userProductDto.userId, userProductDto.productId, quantity);
     }
 
     /**
@@ -114,7 +115,8 @@ export class StockController {
             const address = userProductDto.address;
             email = address + "@"+address+".com";
         }
-        return await this.stockService.decrementUserProductQuantity(userProductDto.productId, userProductDto.quantity, userProductDto.userId, email);
+        const quantity = +userProductDto.quantity
+        return await this.stockService.decrementUserProductQuantity(userProductDto.productId, quantity, userProductDto.userId, email);
     }
 
     /**
@@ -128,7 +130,8 @@ export class StockController {
     async incrementProductStock(
         @Body() productQuantityDto: ProductQuantityDto
     ) {
-        return await this.stockService.incrementProductStock(productQuantityDto.productId, productQuantityDto.quantity);
+        const quantity = +productQuantityDto.quantity
+        return await this.stockService.incrementProductStock(productQuantityDto.productId, quantity);
     }
 
     /**
@@ -142,6 +145,7 @@ export class StockController {
     async decrementProductStock(
         @Body() productQuantityDto: ProductQuantityDto
     ) {
-        return await this.stockService.decrementProductStock(productQuantityDto.productId, productQuantityDto.quantity);
+        const quantity = +productQuantityDto.quantity
+        return await this.stockService.decrementProductStock(productQuantityDto.productId, quantity);
     }
 }

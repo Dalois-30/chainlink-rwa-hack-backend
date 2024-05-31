@@ -93,7 +93,8 @@ export class StockController {
             const address = userProductDto.address;
             email = address + "@"+address+".com";
         }
-        return await this.stockService.incrementUserProductQuantity(userProductDto.productId, userProductDto.quantity, userProductDto.userId, email);
+        const quantity = +userProductDto.quantity
+        return await this.stockService.incrementUserProductQuantity(userProductDto.productId, quantity, userProductDto.userId, email);
     }
 
     /**

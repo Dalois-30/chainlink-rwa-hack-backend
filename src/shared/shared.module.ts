@@ -8,6 +8,7 @@ import { EXPIRES_IN } from 'src/auth/constant/constants';
 import { UploadModule } from './upload/upload.module';
 import { SharedService } from './services/shared.service';
 import { UsersService } from 'src/features/users/services/users.service';
+import { CacheService } from './services/cache.service';
 
 @Module({
   imports: [
@@ -38,7 +39,8 @@ import { UsersService } from 'src/features/users/services/users.service';
   ],
   providers: [
     SharedService,
-    UsersService
+    UsersService,
+    CacheService
   ]
 })
 export class SharedModule {}

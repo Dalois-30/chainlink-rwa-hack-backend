@@ -6,6 +6,7 @@ import { UploadModule } from 'src/shared/upload/upload.module';
 import { UploadService } from 'src/shared/upload/upload.service';
 import { StockService } from './services/stock.service';
 import { StockController } from './controllers/stock.controller';
+import { CacheService } from 'src/shared/services/cache.service';
 
 @Module({
   imports: [
@@ -19,7 +20,8 @@ import { StockController } from './controllers/stock.controller';
   providers: [
     ProductService,
     UploadService,
-    StockService
+    StockService,
+    CacheService
   ]
 }) 
 export class ProductModule { }

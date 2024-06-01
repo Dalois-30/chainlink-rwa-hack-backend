@@ -25,7 +25,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     }),
     UploadModule,
     CacheModule.register({
-      ttl: 50, // seconds
+      ttl: 5000, // seconds
       max: 100, // maximum number of items in cache
     }),
   ],
@@ -42,7 +42,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     }),
     UploadModule,
     CacheModule.register({
-      ttl: 50, // seconds
+      ttl: 5000, // seconds
       max: 100, // maximum number of items in cache
     }),
   ],

@@ -9,6 +9,7 @@ import { UploadModule } from './upload/upload.module';
 import { SharedService } from './services/shared.service';
 import { UsersService } from 'src/features/users/services/users.service';
 import { CacheService } from './services/cache.service';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
   imports: [
@@ -23,6 +24,10 @@ import { CacheService } from './services/cache.service';
         },
     }),
     UploadModule,
+    CacheModule.register({
+      ttl: 50, // seconds
+      max: 100, // maximum number of items in cache
+    }),
   ],
   exports: [
     DatabaseModule, 
@@ -35,7 +40,11 @@ import { CacheService } from './services/cache.service';
             expiresIn: EXPIRES_IN,
         },
     }),
-    UploadModule
+    UploadModule,
+    CacheModule.register({
+      ttl: 50, // seconds
+      max: 100, // maximum number of items in cache
+    }),
   ],
   providers: [
     SharedService,

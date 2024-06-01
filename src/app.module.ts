@@ -8,6 +8,7 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggingInterceptor } from './shared/interceptors/logging.interceptor';
 import { AuthGuard } from './auth/guards/auth.guard';
+import { CacheService } from './shared/services/cache.service';
 
 @Module({
   imports: [

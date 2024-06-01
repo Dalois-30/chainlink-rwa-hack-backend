@@ -1,28 +1,35 @@
-import { Injectable } from '@nestjs/common';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { Injectable, Inject } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class CacheService {
-  private cache: Map<string, BehaviorSubject<any>> = new Map();
+    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) { }
 
-  get<T>(key: string): Observable<T> {
-    if (!this.cache.has(key)) {
-      this.cache.set(key, new BehaviorSubject<T>(null));
+    async get<T>(key: string): Promise<T> {
+        return await this.cacheManager.get<T>(key);
     }
-    return this.cache.get(key).asObservable();
-  }
 
-  set<T>(key: string, value: T): void {
-    if (!this.cache.has(key)) {
-      this.cache.set(key, new BehaviorSubject<T>(value));
-    } else {
-      this.cache.get(key).next(value);
+    async set<T>(key: string, value: T, ttl: number = 36000): Promise<void> {
+        await this.cacheManager.set(key, value, ttl);
     }
-  }
 
-  del(key: string): void {
-    if (this.cache.has(key)) {
-      this.cache.delete(key);
+    async del(key: string): Promise<void> {
+        await this.cacheManager.del(key);
     }
-  }
+
+    async getOrSet<T>(key: string, fetchFunction: () => Promise<T>, ttl: number = 3600): Promise<T> {
+        const cached = await this.get<T>(key);
+        if (cached) {
+            return cached;
+        }
+
+        const value = await fetchFunction();
+        await this.set(key, value, ttl);
+        return value;
+    }
+
+    async flushAll(): Promise<void> {
+        await this.cacheManager.reset();
+    }
 }

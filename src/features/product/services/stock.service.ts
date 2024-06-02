@@ -7,6 +7,7 @@ import { Product } from '../models/product.model';
 import { Stock } from '../models/stock.model';
 import { UserProduct } from '../models/user-product.model';
 import { CacheService } from 'src/shared/services/cache.service';
+import { ProductQuantityPriceDto } from '../dto/product-quantity.dto';
 
 @Injectable()
 export class StockService {
@@ -76,7 +77,7 @@ export class StockService {
      * @param productId - The ID of the product.
      * @returns The total stock value of the user's product.
      */
-    async getUserProductStock(userId: string, productId: string): Promise<ApiResponseDTO<number>> {
+    async getUserProductStock(userId: string, productId: string): Promise<ApiResponseDTO<ProductQuantityPriceDto>> {
         return this.getUserProductStockGeneric({ userId, productId });
     }
 
@@ -86,7 +87,7 @@ export class StockService {
      * @param productId - The ID of the product.
      * @returns The total stock value of the user's product.
      */
-    async getUserProductStockByEmail(email: string, productId: string): Promise<ApiResponseDTO<number>> {
+    async getUserProductStockByEmail(email: string, productId: string): Promise<ApiResponseDTO<ProductQuantityPriceDto>> {
         return this.getUserProductStockGeneric({ email, productId });
     }
 
@@ -95,7 +96,7 @@ export class StockService {
      * @param params - Object containing either userId or email, and productId.
      * @returns The total stock value of the user's product.
      */
-    private async getUserProductStockGeneric({ userId, email, productId }: { userId?: string, email?: string, productId: string }): Promise<ApiResponseDTO<number>> {
+    private async getUserProductStockGeneric({ userId, email, productId }: { userId?: string, email?: string, productId: string }): Promise<ApiResponseDTO<ProductQuantityPriceDto>> {
         try {
             const cacheKey = `user_${userId || email}_product_${productId}_stock`;
             let userProduct = await this.cacheService.get<UserProduct>(cacheKey);
@@ -121,8 +122,12 @@ export class StockService {
                 // Cache the userProduct data
                 await this.cacheService.set(cacheKey, userProduct);
             }
+            const resData = new ProductQuantityPriceDto();
+            resData.price = userProduct.product.price;
+            resData.quantity = userProduct.quantity;
+            resData.value = userProduct.quantity * userProduct.product.price;
 
-            return this.createResponse(HttpStatus.OK, "Stock retrieved successfully", userProduct.quantity * userProduct.product.price);
+            return this.createResponse(HttpStatus.OK, "Stock retrieved successfully", resData);
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.BAD_REQUEST);
         }

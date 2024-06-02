@@ -12,6 +12,20 @@ export class ProductQuantityDto {
     quantity: number;
 }
 
+export class ProductQuantityPriceDto {
+    @ApiProperty()
+    @IsInt()
+    price: number;
+
+    @ApiProperty()
+    @IsInt()
+    quantity: number;
+
+    @ApiProperty()
+    @IsInt()
+    value: number;
+}
+
 export class ProductUserQuantityDto {
     @ApiProperty()
     @IsUUID()
